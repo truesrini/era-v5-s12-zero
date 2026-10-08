@@ -246,16 +246,16 @@ Scaled to the 30B model (P = 60 GB), that's 116 GB per GPU per step for DDP/ZeRO
 
 | ms per step (mean over ranks) | forward | backward | optimizer | communication | total |
 |---|---|---|---|---|---|
-| DDP | 52 | 318 | **237** | 999 | 1660 |
-| ZeRO-1 | 42 | 454 | **67** | 1260 | 1877 |
-| ZeRO-2 | 49 | 386 | **68** | 1406 | 1969 |
-| ZeRO-3 | 45 | 369 | **65** | 1934 | 2461 |
+| DDP | 43 | 285 | **213** | 872 | 1461 |
+| ZeRO-1 | 39 | 370 | **61** | 1145 | 1662 |
+| ZeRO-2 | 44 | 288 | **61** | 1247 | 1695 |
+| ZeRO-3 | 39 | 293 | **56** | 1659 | 2090 |
 
 * **Forward/backward compute is the same work in all four.** Every GPU still runs its own 8 samples through the whole model.
   ZeRO splits storage, not compute. The backward differences are noise from 32 threads sharing 12 CPU cores.
 * **The optimizer gets about 3.5x cheaper** with any ZeRO stage, because each GPU updates only 1/32 of the parameters. On a GPU
   it would be close to 32x. Here, per-call overhead of 32 Python threads dominates at this tiny size.
-* **ZeRO-3 is the slowest:** the extra all-gather pass adds roughly 500 ms here.
+* **ZeRO-3 is the slowest:** the extra all-gather pass adds roughly 400 ms here.
 * Gloo's reduce-scatter over loopback isn't bandwidth-optimal. It takes about as long as a full all-reduce, so ZeRO-1/2 look
   slower than DDP in wall time even though they send the same bytes. With NCCL on real GPUs, reduce-scatter + all-gather
   costs about the same as one all-reduce. The byte volume carries over to real hardware. These laptop timings don't.
