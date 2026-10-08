@@ -1,0 +1,5 @@
+,shards,bytes/param (formula),bytes/param (measured),memory vs DDP,comm (x P),optimizer ms,step ms,same weights as DDP
+DDP (no sharding),nothing,16.0,16.0,100.0%,1.94,213.4,1461.3,True
+ZeRO-1,optimizer states,4.375,4.385,27.4%,1.94,60.6,1662.2,True
+ZeRO-2,optimizer + grads,2.438,2.771,17.3%,1.94,61.2,1695.0,True
+ZeRO-3,optimizer + grads + params,0.5,1.156,7.2%,2.91,55.5,2090.0,True
