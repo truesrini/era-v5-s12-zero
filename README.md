@@ -283,35 +283,7 @@ bandwidth (ZeRO-3). Stages 1 and 2 are nearly free. Stage 3 has a real cost, so 
   item and need activation checkpointing. ZeRO doesn't shard activations.
 * **No offload.** ZeRO-Offload / Infinity (moving optimizer state to CPU RAM or NVMe) isn't simulated.
 
-## 8. Check your understanding
-
-<details><summary>Why does ZeRO-1 cost no extra communication compared with DDP?</summary>
-DDP's all-reduce is internally a reduce-scatter plus an all-gather. ZeRO-1 does the same two phases. It just runs the
-optimizer between them, on the slice it received from the reduce-scatter, and all-gathers the updated weights instead of
-the gradients.
-</details>
-
-<details><summary>Why can't DDP or ZeRO-1 fit the 30B model on any number of 80 GB GPUs?</summary>
-Both keep a full bf16 copy of the weights (2 bytes) and of the gradients (2 bytes) on every GPU. 4 x 30e9 bytes = 111.8 GiB,
-which is more than 74.5 GiB, and adding GPUs doesn't shrink it.
-</details>
-
-<details><summary>Where does ZeRO-3's extra 1P come from?</summary>
-The weights are sharded, so they must be all-gathered before forward. Freeing them after use is the whole point, so they
-must be all-gathered again for backward. That's 2 all-gathers (2P) plus the gradient reduce-scatter (1P).
-</details>
-
-<details><summary>Why did ZeRO-3 measure 1.16 bytes/param instead of 0.5?</summary>
-In backward, one layer's gathered weights and its full gradient are both alive at once. Each is 2 bytes x 1/6 of the
-model = 0.33 bytes/param, so 0.5 + 0.67 = 1.17. With many small layers this overhead shrinks.
-</details>
-
-<details><summary>Does ZeRO reduce compute per GPU?</summary>
-Forward and backward: no, every GPU still processes its own micro-batch through the full model. Optimizer: yes, each
-GPU only updates 1/N of the parameters.
-</details>
-
-## 9. Files
+## 8. Files
 
 | file | what it is |
 |---|---|
